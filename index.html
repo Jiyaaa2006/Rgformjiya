@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extended Form Validation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #ff69b4; /* Hot pink background */
+            overflow: hidden;
+        }
+        .container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        input {
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .error {
+            color: red;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+        .btn {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .fireworks {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        #formDetails {
+            margin-top: 2rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form id="simpleForm">
+            <div class="error" id="error"></div>
+
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="Enter your name">
+
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="Enter your email">
+
+            <label for="enrollment">Enrollment Number</label>
+            <input type="text" id="enrollment" name="enrollment" placeholder="Enter your enrollment number">
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password">
+
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" name="dob">
+
+            <button type="submit" class="btn">Submit</button>
+        </form>
+
+        <div id="formDetails"></div>
+    </div>
+
+    <canvas class="fireworks" id="fireworksCanvas"></canvas>
+
+    <script>
+        // Fireworks effect setup
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+
+        function createParticle(x, y, color) {
+            const particle = {
+                x,
+                y,
+                radius: Math.random() * 4 + 1,
+                color,
+                velocityX: (Math.random() - 0.5) * 10,
+                velocityY: (Math.random() - 0.5) * 10,
+                alpha: 1,
+            };
+            particles.push(particle);
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((particle, index) => {
+                particle.x += particle.velocityX;
+                particle.y += particle.velocityY;
+                particle.alpha -= 0.02;
+
+                if (particle.alpha <= 0) {
+                    particles.splice(index, 1);
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${particle.color}, ${particle.alpha})`;
+                    ctx.fill();
+                }
+            });
+            requestAnimationFrame(animateParticles);
+        }
+
+        function triggerFireworks(x, y) {
+            const colors = ["255, 99, 71", "135, 206, 235", "255, 215, 0"];
+            for (let i = 0; i < 10; i++) {
+                createParticle(x, y, colors[Math.floor(Math.random() * colors.length)]);
+            }
+        }
+
+        animateParticles();
+
+        // Add sparkle when typing in inputs
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', (event) => {
+                triggerFireworks(event.target.offsetLeft + 50, event.target.offsetTop + 20);
+            });
+        });
+
+        document.getElementById('simpleForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const enrollment = document.getElementById('enrollment').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const dob = document.getElementById('dob').value;
+            const errorElement = document.getElementById('error');
+
+            errorElement.textContent = ""; // Clear previous errors
+
+            if (!name) {
+                errorElement.textContent = "Name field cannot be empty.";
+                return;
+            }
+
+            if (!email) {
+                errorElement.textContent = "Email field cannot be empty.";
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                errorElement.textContent = "Please enter a valid email address.";
+                return;
+            }
+
+            if (!enrollment) {
+                errorElement.textContent = "Enrollment number cannot be empty.";
+                return;
+            }
+
+            if (!password || password.length < 6) {
+                errorElement.textContent = "Password must be at least 6 characters long.";
+                return;
+            }
+
+            if (!dob) {
+                errorElement.textContent = "Please select a valid date of birth.";
+                return;
+            }
+
+            // Display entered details
+            const formDetails = document.getElementById('formDetails');
+            formDetails.innerHTML = `
+                <h3>Form Details</h3>
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Enrollment Number:</strong> ${enrollment}</p>
+                <p><strong>Password:</strong> ${password}</p>
+                <p><strong>Date of Birth:</strong> ${dob}</p>
+            `;
+
+            alert("Form submitted successfully!");
+
+            // Trigger fireworks on form submission
+            triggerFireworks(window.innerWidth / 2, window.innerHeight / 2);
+        });
+    </script>
+</body>
+</html>
